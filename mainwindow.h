@@ -19,6 +19,13 @@ public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
     QVector<double> q;
+    agent robot;
+    dot t;
+    QTimer *timer;
+    int graph_id=0;
+private slots:
+
+   void plot_loop();
 private:
   //  void define_domain(float x_range, float y_range,double dq,QVector<double>& q);
 

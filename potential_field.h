@@ -6,7 +6,11 @@
 #include "math.h"
 using namespace std;
 
-
+struct vect
+{
+    double x;
+    double y;
+};
 
 struct dot{
   double x;
@@ -19,10 +23,10 @@ struct dot{
 struct agent{
     double x;
     double y;
-    double x_last;
-    double y_last;
     double vx;
     double vy;
+    vect att; // attractive force
+    vect rep; // repulsive force
     std::vector<dot> obstacle_detect;
     double radius;
     double beta_last;
@@ -42,12 +46,12 @@ public:
     std::vector<dot> obstacle;
     void detect_obstacle(agent& robot , std::vector<dot>& obstacle);
     double gamma(agent& robot , dot& target);
-    double beta(agent& robot);
+    double beta(agent robot);
     double distance(dot a,dot b);
     void gradient_phi(agent& robot , dot& target);
-    double pi();
+    double sigmod(agent robot ,dot obstacle);
 
-
+    double zigma(agent robot ,dot obstacle);
 private:
 
 };

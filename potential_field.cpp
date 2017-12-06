@@ -1,4 +1,4 @@
-#include "potential_field.h"
+﻿#include "potential_field.h"
 
 potential_field::potential_field(float x_range, float y_range,double dq)
 {
@@ -16,7 +16,53 @@ potential_field::potential_field(float x_range, float y_range,double dq)
 
 }
 
-//detect obstacles
+
+//compute navigation function
+void potential_field::gradient_phi(agent& robot , dot& target){
+
+    double gamma_ , beta_=1.0 , alpha;
+    double  beta_l=1.0;
+    vect rep_sum,rep;
+    double h;
+    gamma_ = this->gamma( robot , target);
+    beta_ = this ->beta(robot);
+    std::cout<< "beta = "<<  beta_ <<std::endl;
+    alpha = pow( gamma_ , robot.gain )+beta_;
+    // -1 or 1
+    alpha = -1/pow( alpha , (1/robot.gain + 1));
+    robot.att.x = beta_ * 2* ( robot.x - target.x) ;
+    robot.att.y = beta_ * 2* ( robot.y - target.y) ;
+
+
+    for(int i=0;i<robot.obstacle_detect.size();i++){
+        beta_l =1.0;
+        rep_sum.x=0.0;
+        rep_sum.y=0.0;
+
+        h = zigma(robot ,robot.obstacle_detect[i]);
+        rep.x = h * gamma_ * robot.gain * (robot.x-robot.obstacle_detect[i].x);
+        rep.y = h * gamma_ * robot.gain * (robot.y-robot.obstacle_detect[i].y);
+
+        for(int j =0 ;j<robot.obstacle_detect.size();j++){
+            if(j!=i){
+
+                beta_l  *=  sigmod(robot , robot.obstacle_detect[j]);
+            }
+        }
+        std::cout << beta_l << std::endl;
+
+
+        rep_sum.x += rep.x * beta_l;
+        rep_sum.y += rep.y * beta_l;
+    }
+    robot.rep.x = rep_sum.x;
+    robot.rep.y = rep_sum.y;
+
+    robot.vx = alpha * (robot.att.x - robot.rep.x) ;
+    robot.vy = alpha * (robot.att.y - robot.rep.y) ;
+}
+
+//detect obstacles ok
 void potential_field::detect_obstacle(agent& robot , std::vector<dot>& obstacle){
     for(std::vector<dot>::iterator it =obstacle.begin() ; it!= obstacle.end();it++){
         dot data;
@@ -25,75 +71,66 @@ void potential_field::detect_obstacle(agent& robot , std::vector<dot>& obstacle)
             data.x = (*it).x ;
             data.y = (*it).y ;
             robot.obstacle_detect.push_back(data);
-
+//            std::cout<<"dtect obstacle function"<<std::endl;
+//            std::cout << " obstacle  " << "x = " <<data.x
+//                                       << " y= " <<data.y<<std::endl;
         }
     }
   //  std::cout << "size = "<< robot.obstacle_detect.size() << std::endl;
 }
 
-
-//compute navigation function
-void potential_field::gradient_phi(agent& robot , dot& target){
-
-    double gamma_ , beta_ , alpha;
-    double dt=0.01 ;
-
-    double att_x = 0.0 , att_y = 0.0;
-    double rep_x = 0.0 , rep_y = 0.0;
-
-    gamma_ = this->gamma( robot , target);
-    beta_ = this ->beta(robot);
-    robot.beta = beta_;
-
-    alpha = pow( gamma_ , robot.gain )+beta_;
-    alpha = 1*pow( alpha , -1*(robot.gain + 1));
-
-    //calc vel
-    robot.vx = robot.beta * 2* (robot.x - target.x) -
-               (gamma_ / robot.gain)* ((robot.beta_last -robot.beta)/(robot.x_last - robot.x));
-
-    robot.vy = robot.beta * 2* (robot.y - target.y) -
-               (gamma_ / robot.gain)* ((robot.beta_last -robot.beta)/(robot.y_last - robot.y));
-
-    //the dynamics of robots
-//    robot.x +=  dt * (robot.vx);
-//    robot.y +=  dt * (robot.vy);
-}
-
-
-// goal function.
+// goal function. ok
 double potential_field::gamma(agent& robot , dot& target){
-    return (robot.x - target.x)*(robot.x - target.x) + (robot.y - target.y) * (robot.y - target.y);
+    return 2*(robot.x - target.x)*(robot.x - target.x) + 2*(robot.y - target.y) * (robot.y - target.y);
+}
+double potential_field::zigma(agent robot ,dot obstacle){
+    double value, value1 ,value2 ,value3;
+    double h ;
+    dot data;
+    data.x = robot.x;
+    data.y = robot.y;
+    h = (distance(data ,obstacle ) - (robot.radius/2.0))*(12/robot.radius);
+    value1 = 1/((1+exp(h))*(1+exp(h)));
+    value2 = exp(h) * (12 / robot.radius);
+    value3 = 1/ distance(data , obstacle);
+
+    return value1 * value2 * value3;
 }
 
-
-// Obstacle avoidance function
-double potential_field::beta(agent& robot){
-    double p_il;
-
+// Obstacle avoidance function ok
+double potential_field::beta(agent robot){
     double beta_i = 1.0, beta_il;
-
     if(robot.obstacle_detect.size()>0){
         for(int i=0;i<robot.obstacle_detect.size();i++){
 
-            for(int j=0;j<robot.obstacle_detect.size();j++){
-                if(j!=i){
-
-
-                    //compute pi function
-                }
-            }
-
+            beta_il = sigmod(robot,robot.obstacle_detect[i]);
+            beta_i = beta_i * beta_il;
         }
     }
+
     //if p_il >robot.radius  beta_i =1;
     return beta_i;
 }
 
-double potential_field::pi(){
-
+// sigmod function ok
+double potential_field::sigmod(agent robot ,dot obstacle){
+    double value=0.0;
+    double dist ;
+    dot data;
+    data.x = robot.x;
+    data.y = robot.y;
+    dist = distance(data , obstacle);
+//    std::cout <<"sigmod function  "<<std::endl;
+//    std::cout << "dist =" <<dist <<std::endl;
+//    std::cout << "radius = " <<robot.radius <<std::endl;
+    value = 1 + exp(-1*(dist - (robot.radius/2))*(12/robot.radius)) ;
+    value = 1/value;
+    //std::cout << "beta = " << value <<std::endl;
+    return value;
 }
 
+
+// return distance between a and b ok
 double potential_field::distance(dot a,dot b){
-    return sqrt(  (a.x-b.x)*(a.x-b.x) + (a.y-b.y)*(a.y-b.y) );
+    return sqrt( (a.x-b.x)*(a.x-b.x) + (a.y-b.y)*(a.y-b.y) );
 }

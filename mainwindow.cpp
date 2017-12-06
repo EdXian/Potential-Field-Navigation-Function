@@ -11,9 +11,17 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
     ui->customPlot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectPlottables);
 
+
+    timer = new QTimer(this);
+    connect(timer, SIGNAL(timeout()),this, SLOT(plot_loop()));
+    timer->start(50);
+
+    ui->customPlot->xAxis->setRange(-10,10);
+    ui->customPlot->yAxis->setRange(-10,10);
+
     potential_field p(10,10,0.1);
 
-    int graph_id=0;
+
     //
 #ifdef display_domain
     QCPAxisRect *   xRect = new QCPAxisRect( this->ui->customPlot );
@@ -34,15 +42,15 @@ MainWindow::MainWindow(QWidget *parent) :
 
 
     //obstacle
-    QVector<double> ox(100),oy(100);
-    for(int i=0;i<10;i++){
+    QVector<double> ox(400),oy(400);
+    for(int i=0;i<20;i++){
         dot data;
-        for(int j=0;j<10;j++){
+        for(int j=0;j<20;j++){
             data.x = -3 + 0.1 *i;
             data.y = -3 + 0.1 *j;
             data.obstacle=true;
-            ox[i*10+j] = data.x;
-            oy[i*10+j] = data.y;
+            ox[i*20+j] = data.x;
+            oy[i*20+j] = data.y;
             p.obstacle.push_back(data);
         }
     }
@@ -53,12 +61,10 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->customPlot->graph(graph_id)->setData(ox,oy);
     graph_id++;
 
-
-
-    agent robot;
-    robot.x = -3.1;
-    robot.y = -3.1;
+    robot.x = -3.2;
+    robot.y = -3.2;
     robot.radius = 0.5;
+    robot.gain = 2.0;
 
     QVector<double> r_x(30) , r_y(30);
     QVector<QCPCurveData> dataSpiral1(100);
@@ -70,28 +76,27 @@ MainWindow::MainWindow(QWidget *parent) :
     fermatSpiral1->data()->set(dataSpiral1, true);
 
     //detect obstacles
-    std::cout << "radius = " <<robot.radius<<std::endl;
-
     p.detect_obstacle(robot, p.obstacle);
     //must clear detect obstacle in per loop
 
+    t.x =2; t.y =7;
+    p.gradient_phi(robot,t);
+
+    std::cout << "vx = " << robot.vx <<std::endl;
+    std::cout << "vy = " << robot.vy <<std::endl;
 
 
-    ui->customPlot->xAxis->setRange(-10,10);
-    ui->customPlot->yAxis->setRange(-10,10);
     ui->customPlot->replot();
-
-//    QCPCurve *fermatSpiral1 = new QCPCurve(ui->customPlot->xAxis, ui->customPlot->yAxis);
-//    QVector<QCPCurveData> dataSpiral1(100);
-//    int a=3 ,b=4;
-//    for (int i=0; i<100; ++i)
-//    {
-//      dataSpiral1[i] = QCPCurveData(i, a*cos(0.1*i), b*sin(0.1*i));
-//    }
-//    fermatSpiral1->data()->set(dataSpiral1, true);
-
 }
 
+void MainWindow::plot_loop(){
+
+
+
+
+
+
+}
 MainWindow::~MainWindow()
 {
     delete ui;
