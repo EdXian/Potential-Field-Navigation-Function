@@ -32,13 +32,14 @@ void potential_field::gradient_phi(agent& robot , dot& target){
     // -1 or 1
     alpha = -1/pow( alpha , (1/robot.gain + 1));
 
+
     robot.att.x = beta_ * 2* ( robot.x - target.x) ;
     robot.att.y = beta_ * 2* ( robot.y - target.y) ;
 
     if(robot.obstacle_detect.size()>1){
         for(int i=0;i<robot.obstacle_detect.size();i++){
-            beta_l =1.0;
 
+            beta_l =1.0;
             h = zigma(robot ,robot.obstacle_detect[i]);
             rep.x =  h*gamma_ * robot.gain * (robot.x-robot.obstacle_detect[i].x);
             rep.y =  h*gamma_ * robot.gain * (robot.y-robot.obstacle_detect[i].y);
@@ -56,15 +57,18 @@ void potential_field::gradient_phi(agent& robot , dot& target){
         }
         robot.rep.x = rep_sum.x;
         robot.rep.y = rep_sum.y;
-    }else if(robot.obstacle_detect.size()==1){
-        rep_sum.x = rep.x * beta_l;
-        rep_sum.y = rep.y * beta_l;
-        robot.rep.x = 0;
-        robot.rep.y = 0;
 
+    }else if(robot.obstacle_detect.size()==1){
+        h = zigma(robot ,robot.obstacle_detect[0]);
+        rep.x =  h*gamma_ * robot.gain * (robot.x-robot.obstacle_detect[0].x);
+        rep.y =  h*gamma_ * robot.gain * (robot.y-robot.obstacle_detect[0].y);
+        robot.rep.x = rep.x * beta_l;
+        robot.rep.y = rep.y * beta_l;
     }else{
+
         rep_sum.x = 0;
         rep_sum.y = 0;
+
     }
 
    robot.vx = alpha * (robot.att.x - robot.rep.x) ;
@@ -92,6 +96,7 @@ void potential_field::detect_obstacle(agent& robot , std::vector<dot>& obstacle)
 double potential_field::gamma(agent& robot , dot& target){
     return (robot.x - target.x)*(robot.x - target.x) + (robot.y - target.y) * (robot.y - target.y);
 }
+
 double potential_field::zigma(agent robot ,dot obstacle){
     double value, value1 ,value2 ,value3;
     double h ;
@@ -121,6 +126,7 @@ double potential_field::beta(agent robot){
        beta_i =1;
     }
     //if p_il >robot.radius  beta_i =1;
+
     return beta_i;
 }
 
@@ -132,7 +138,7 @@ double potential_field::sigmod(agent robot ,dot obstacle){
     data.x = robot.x;
     data.y = robot.y;
     dist = distance(data , obstacle);
-    value = 1 + exp(-1*(dist - (robot.radius/2))*(12/robot.radius)) ;
+    value = 1 + exp(-1*(dist - (robot.radius/2))*(8/robot.radius)) ;
     value = 1/value;
     return value;
 }

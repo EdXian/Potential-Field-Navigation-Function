@@ -26,8 +26,11 @@ public:
    // potential_field p(10,10,0.1);
    // potential_field p(10,10,0.1);
     potential_field p;
-     QVector<QCPCurveData> dataSpiral1;
-      QCPCurve *fermatSpiral1;
+    QVector<QCPCurveData> dataSpiral1;
+    QCPCurve *fermatSpiral1;
+    QVector<double> rl_t,rl_y,rl_z;
+    void vel_plot(double x,double y);
+      double count;
 private slots:
 
    void plot_loop();
