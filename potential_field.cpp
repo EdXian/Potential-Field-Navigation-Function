@@ -26,40 +26,49 @@ void potential_field::gradient_phi(agent& robot , dot& target){
     double h;
     gamma_ = this->gamma( robot , target);
     beta_ = this ->beta(robot);
-    std::cout<< "beta = "<<  beta_ <<std::endl;
+
+
     alpha = pow( gamma_ , robot.gain )+beta_;
     // -1 or 1
     alpha = -1/pow( alpha , (1/robot.gain + 1));
+
     robot.att.x = beta_ * 2* ( robot.x - target.x) ;
     robot.att.y = beta_ * 2* ( robot.y - target.y) ;
 
+    if(robot.obstacle_detect.size()>1){
+        for(int i=0;i<robot.obstacle_detect.size();i++){
+            beta_l =1.0;
 
-    for(int i=0;i<robot.obstacle_detect.size();i++){
-        beta_l =1.0;
-        rep_sum.x=0.0;
-        rep_sum.y=0.0;
+            h = zigma(robot ,robot.obstacle_detect[i]);
+            rep.x =  h*gamma_ * robot.gain * (robot.x-robot.obstacle_detect[i].x);
+            rep.y =  h*gamma_ * robot.gain * (robot.y-robot.obstacle_detect[i].y);
 
-        h = zigma(robot ,robot.obstacle_detect[i]);
-        rep.x = h * gamma_ * robot.gain * (robot.x-robot.obstacle_detect[i].x);
-        rep.y = h * gamma_ * robot.gain * (robot.y-robot.obstacle_detect[i].y);
+            for(int j =0 ;j<robot.obstacle_detect.size();j++){
+                if(j!=i){
 
-        for(int j =0 ;j<robot.obstacle_detect.size();j++){
-            if(j!=i){
+                    beta_l  *=  sigmod(robot , robot.obstacle_detect[j]);
 
-                beta_l  *=  sigmod(robot , robot.obstacle_detect[j]);
+                }
+
             }
+            rep_sum.x += rep.x * beta_l;
+            rep_sum.y += rep.y * beta_l;
         }
-        std::cout << beta_l << std::endl;
+        robot.rep.x = rep_sum.x;
+        robot.rep.y = rep_sum.y;
+    }else if(robot.obstacle_detect.size()==1){
+        rep_sum.x = rep.x * beta_l;
+        rep_sum.y = rep.y * beta_l;
+        robot.rep.x = 0;
+        robot.rep.y = 0;
 
-
-        rep_sum.x += rep.x * beta_l;
-        rep_sum.y += rep.y * beta_l;
+    }else{
+        rep_sum.x = 0;
+        rep_sum.y = 0;
     }
-    robot.rep.x = rep_sum.x;
-    robot.rep.y = rep_sum.y;
 
-    robot.vx = alpha * (robot.att.x - robot.rep.x) ;
-    robot.vy = alpha * (robot.att.y - robot.rep.y) ;
+   robot.vx = alpha * (robot.att.x - robot.rep.x) ;
+   robot.vy = alpha * (robot.att.y - robot.rep.y) ;
 }
 
 //detect obstacles ok
@@ -81,7 +90,7 @@ void potential_field::detect_obstacle(agent& robot , std::vector<dot>& obstacle)
 
 // goal function. ok
 double potential_field::gamma(agent& robot , dot& target){
-    return 2*(robot.x - target.x)*(robot.x - target.x) + 2*(robot.y - target.y) * (robot.y - target.y);
+    return (robot.x - target.x)*(robot.x - target.x) + (robot.y - target.y) * (robot.y - target.y);
 }
 double potential_field::zigma(agent robot ,dot obstacle){
     double value, value1 ,value2 ,value3;
@@ -89,9 +98,10 @@ double potential_field::zigma(agent robot ,dot obstacle){
     dot data;
     data.x = robot.x;
     data.y = robot.y;
-    h = (distance(data ,obstacle ) - (robot.radius/2.0))*(12/robot.radius);
+
+    h = ((robot.radius/2.0)-distance(data ,obstacle ))*(12/robot.radius);
     value1 = 1/((1+exp(h))*(1+exp(h)));
-    value2 = exp(h) * (12 / robot.radius);
+    value2 = 12*exp(h)/robot.radius;
     value3 = 1/ distance(data , obstacle);
 
     return value1 * value2 * value3;
@@ -100,14 +110,16 @@ double potential_field::zigma(agent robot ,dot obstacle){
 // Obstacle avoidance function ok
 double potential_field::beta(agent robot){
     double beta_i = 1.0, beta_il;
-    if(robot.obstacle_detect.size()>0){
+    if(robot.obstacle_detect.size()>1){
         for(int i=0;i<robot.obstacle_detect.size();i++){
 
             beta_il = sigmod(robot,robot.obstacle_detect[i]);
             beta_i = beta_i * beta_il;
         }
     }
-
+    if(robot.obstacle_detect.size()==1){
+       beta_i =1;
+    }
     //if p_il >robot.radius  beta_i =1;
     return beta_i;
 }
@@ -120,12 +132,8 @@ double potential_field::sigmod(agent robot ,dot obstacle){
     data.x = robot.x;
     data.y = robot.y;
     dist = distance(data , obstacle);
-//    std::cout <<"sigmod function  "<<std::endl;
-//    std::cout << "dist =" <<dist <<std::endl;
-//    std::cout << "radius = " <<robot.radius <<std::endl;
     value = 1 + exp(-1*(dist - (robot.radius/2))*(12/robot.radius)) ;
     value = 1/value;
-    //std::cout << "beta = " << value <<std::endl;
     return value;
 }
 

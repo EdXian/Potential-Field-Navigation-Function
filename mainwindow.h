@@ -23,6 +23,11 @@ public:
     dot t;
     QTimer *timer;
     int graph_id=0;
+   // potential_field p(10,10,0.1);
+   // potential_field p(10,10,0.1);
+    potential_field p;
+     QVector<QCPCurveData> dataSpiral1;
+      QCPCurve *fermatSpiral1;
 private slots:
 
    void plot_loop();
