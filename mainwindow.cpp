@@ -8,12 +8,14 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
     p(10,10,0.1),
-    dataSpiral1(100)
+    robot_data(100)
 {
     ui->setupUi(this);
     ui->customPlot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectPlottables);
     ui->realtime_plot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectPlottables);
-    fermatSpiral1 = new QCPCurve(ui->customPlot->xAxis, ui->customPlot->yAxis);
+    robot_curve = new QCPCurve(ui->customPlot->xAxis, ui->customPlot->yAxis);
+
+    obstacle_curve = new QCPCurve(ui->customPlot->xAxis, ui->customPlot->yAxis);
 
     ui->customPlot->xAxis->setRange(-10,10);
     ui->customPlot->yAxis->setRange(-10,10);
@@ -39,69 +41,65 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->customPlot->replot();
 #endif
 
-    QVector<double> ox(800),oy(800);
-    for(int i=0;i<40;i++){
-        dot data;
-        for(int j=0;j<20;j++){
-            data.x = -3 + 0.1 *i;
-            data.y = -3 + 0.1 *j;
-            data.obstacle=true;
-            ox[i*20+j] = data.x;
-            oy[i*20+j] = data.y;
-            p.obstacle.push_back(data);
-        }
+    dot obstacle_pos;
+    obstacle_pos.x = 1;
+    obstacle_pos.y = 0;
+    p.obstacle.push_back(obstacle_pos);
+    for (int i=0; i<100; ++i)
+    {
+      robot_data[i] = QCPCurveData(i, obstacle_pos.x+0.8*cos(0.1*i), obstacle_pos.y+0.8*sin(0.1*i));
     }
-    ui->customPlot->addGraph();
-    ui->customPlot->graph(graph_id)->setLineStyle(QCPGraph::LineStyle::lsNone);
-    ui->customPlot->graph(graph_id)->setScatterStyle(QCPScatterStyle::ssCircle);
-    ui->customPlot->graph(graph_id)->setPen(QPen(Qt::green));
-    ui->customPlot->graph(graph_id)->setData(ox,oy);
-    graph_id++;
-    //obstacle
- t.x =2; t.y =7;
- robot.x = -2;  //-3.35
- robot.y = -7;  //-3.35
- robot.radius = 0.8;
- robot.gain = 2.0;
- timer = new QTimer(this);
- connect(timer, SIGNAL(timeout()),this, SLOT(plot_loop()));
- timer->start(50);
+    obstacle_curve->setPen(QPen(Qt::red));
+    obstacle_curve->data()->set(robot_data, true);
+
+    t.x =2; t.y =7;
+    robot.x = -2;  //-3.35
+    robot.y = -7;  //-3.35
+    robot.radius = 0.6;
+    robot.gain = 0.8;
+    timer = new QTimer(this);
+    connect(timer, SIGNAL(timeout()),this, SLOT(plot_loop()));
+    timer->start(50);
 }
 
 void MainWindow::plot_loop(){
 
+
+    //plot robot
     for (int i=0; i<100; ++i)
     {
-     dataSpiral1[i] = QCPCurveData(i, robot.x+robot.radius*cos(0.1*i), robot.y+robot.radius*sin(0.1*i));
+     robot_data[i] = QCPCurveData(i, robot.x+robot.radius*cos(0.1*i), robot.y+robot.radius*sin(0.1*i));
     }
-    fermatSpiral1->data()->set(dataSpiral1, true);
+    robot_curve->setPen(QPen(Qt::blue));
+    robot_curve->data()->set(robot_data, true);
 
-    p.detect_obstacle(robot, p.obstacle);
+    //
+    p.detect_obstacle(robot , p.obstacle);
     p.gradient_phi(robot,t);
 
-//    std::cout << robot.obstacle_detect.size()<<std::endl;
-     robot.vx *= 1000;
-     robot.vy *= 1000;
+    robot.vx *= 40;
+    robot.vy *=40;
 
-//     if(robot.vx > 0.1 ){
-//         robot.vx =0.1;
-//     }else if(robot.vx < -0.1){
-//           robot.vx = -0.1;
-//     }
-//     if(robot.vy > 0.1 ){
-//         robot.vy =0.1;
-//     }else if(robot.vy < -0.1){
-//           robot.vy = -0.1;
-//     }
-    robot.x +=robot.vx;
-    robot.y +=robot.vy;
-
-//    std::cout << "rep = " <<robot.rep.x  <<"  "<<robot.rep.y<<std::endl;
-//    std::cout << "att = " <<robot.att.x  <<"  "<<robot.att.y<<std::endl;
-//    std::cout << "vx = " << robot.vx <<std::endl;
-//    std::cout << "vy = " << robot.vy <<std::endl;
-
+    if(robot.vx > 0.3){
+        robot.vx=0.3;
+    }else if(robot.vx <-0.3){
+        robot.vx=-0.3;
+    }
+    if(robot.vy > 0.3){
+        robot.vy=0.3;
+    }else if(robot.vy <-0.3){
+        robot.vy=-0.3;
+    }
     vel_plot(robot.vx,robot.vy);
+    dot r;
+    r.x = robot.x;
+    r.y = robot.y;
+    if (p.distance(r , t)>0.3){
+        robot.x +=robot.vx;
+        robot.y +=robot.vy;
+    }
+
+
 
     ui->customPlot->replot();
     ui->realtime_plot->replot();
