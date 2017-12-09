@@ -16,12 +16,14 @@
 
 ## Result
 
+Uncomment `#define colormap`to show colormap. 
 ![alt text](figure/colormap.png?raw=true "colormap")
 ![alt text](figure/simulation.gif?raw=true "simulation")
 
 ## Navigation Function
 
 ## Simulation for Matlab
+
 ![alt text](figure/potential1.jpg?raw=true "potential1")
 
 ![alt text](figure/potential2.jpg?raw=true "potential2")
