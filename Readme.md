@@ -1,6 +1,6 @@
 # Robot Motion Planning by using Potentil Field Method
 
-# Build Environments
+## Build Environments
 
  * Ubuntu : 16.04
 
@@ -10,12 +10,17 @@
 
  * Qt creator : 4.4
 
-# Prerequisite Libraries
+## Prerequisite Libraries
 
  * qcustomplot : [2.0.0](http://www.qcustomplot.com/index.php/download)
 
+## Result
 
-## Matlab Simulation
+![alt text](figure/colormap.png?raw=true "colormap")
+
+## Navigation Function
+
+## Simulation for Matlab
 ![alt text](figure/potential1.jpg?raw=true "potential1")
 
 ![alt text](figure/potential2.jpg?raw=true "potential2")

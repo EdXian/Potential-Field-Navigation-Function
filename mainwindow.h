@@ -23,12 +23,13 @@ public:
     dot t;
     QTimer *timer;
     int graph_id=0;
-   // potential_field p(10,10,0.1);
-   // potential_field p(10,10,0.1);
+
     potential_field p;
+    //robot
     QVector<QCPCurveData> robot_data;
     QCPCurve *robot_curve;
 
+    //obstacle
     QVector<QCPCurveData> obstacle_data;
     QCPCurve *obstacle_curve;
 
@@ -39,13 +40,17 @@ public:
     QCPCurve *obstacle_curve2;
 
     QVector<double> rl_t,rl_y,rl_z;
+
+    //color map
+    QCPColorMap *colorMap;
+    QCPColorScale *colorScale;
+    QCPMarginGroup *marginGroup;
     void vel_plot(double x,double y);
     double count;
 private slots:
 
    void plot_loop();
    void on_pushButton_clicked();
-
    void on_pushButton_2_clicked();
 
 private:
