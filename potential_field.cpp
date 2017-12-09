@@ -36,23 +36,23 @@ void potential_field::gradient_phi(agent& robot , dot& target){
     robot.att.x = beta_ * 2* ( robot.x - target.x) ;
     robot.att.y = beta_ * 2* ( robot.y - target.y) ;
 
-    std::cout<< "-------------" <<std::endl;
-    std::cout <<"k = " << robot.gain  <<std::endl;
-    std::cout <<"alpha = " << alpha  <<std::endl;
-    std::cout <<"gamma_ = " << gamma_  <<std::endl;
-    std::cout <<"beta = " << beta_<<std::endl;
-    std::cout << "attx = " <<  robot.att.x
-              << "  atty = " <<   robot.att.y<<std::endl;
+//    std::cout<< "-------------" <<std::endl;
+//    std::cout <<"k = " << robot.gain  <<std::endl;
+//    std::cout <<"alpha = " << alpha  <<std::endl;
+//    std::cout <<"gamma_ = " << gamma_  <<std::endl;
+//    std::cout <<"beta = " << beta_<<std::endl;
+//    std::cout << "attx = " <<  robot.att.x
+//              << "  atty = " <<   robot.att.y<<std::endl;
 
 
     if(robot.obstacle_detect.size()>1){
-        for(int i=0;i<robot.obstacle_detect.size();i++){
+        for(unsigned int i=0;i<robot.obstacle_detect.size();i++){
             beta_l =1.0;
             h = zigma(robot ,robot.obstacle_detect[i]);
             rep.x =  h*gamma_ * robot.gain * (robot.x-robot.obstacle_detect[i].x);
             rep.y =  h*gamma_ * robot.gain * (robot.y-robot.obstacle_detect[i].y);
 
-            for(int j =0 ;j<robot.obstacle_detect.size();j++){
+            for(unsigned int j =0 ;j<robot.obstacle_detect.size();j++){
                 if(j!=i){
 
                     beta_l  *=  sigmod(robot , robot.obstacle_detect[j]);
@@ -96,7 +96,7 @@ double potential_field::gamma(agent& robot , dot& target){
 }
 
 double potential_field::zigma(agent robot ,dot obstacle){
-    double value, value1 ,value2 ,value3;
+    double  value1 ,value2 ,value3;
     double h ;
     dot data;
     data.x = robot.x;
@@ -114,7 +114,7 @@ double potential_field::zigma(agent robot ,dot obstacle){
 double potential_field::beta(agent robot){
     double beta_i = 1.0, beta_il;
     if(robot.obstacle_detect.size()>1){
-        for(int i=0;i<robot.obstacle_detect.size();i++){
+        for(unsigned int i=0;i<robot.obstacle_detect.size();i++){
 
             beta_il = sigmod(robot,robot.obstacle_detect[i]);
             beta_i = beta_i * beta_il;
@@ -142,7 +142,12 @@ double potential_field::sigmod(agent robot ,dot obstacle){
     //std::cout << ""  <<  value<<std::endl;
     return value;
 }
+void phi(agent& robot , dot& target){
 
+
+
+
+}
 
 // return distance between a and b ok
 double potential_field::distance(dot a,dot b){

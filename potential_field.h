@@ -16,10 +16,10 @@ struct dot{
   double x;
   double y;
   double value;
-  bool obstacle;
+
 };
-
-
+typedef vect vel;
+typedef dot pos;
 struct agent{
     double x;
     double y;
@@ -49,6 +49,7 @@ public:
     double beta(agent robot);
     double distance(dot a,dot b);
     void gradient_phi(agent& robot , dot& target);
+    void phi(agent& robot , dot& target);
     double sigmod(agent robot ,dot obstacle);
 
     double zigma(agent robot ,dot obstacle);

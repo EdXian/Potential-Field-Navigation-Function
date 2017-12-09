@@ -32,12 +32,22 @@ public:
     QVector<QCPCurveData> obstacle_data;
     QCPCurve *obstacle_curve;
 
+    QVector<QCPCurveData> obstacle_data1;
+    QCPCurve *obstacle_curve1;
+
+    QVector<QCPCurveData> obstacle_data2;
+    QCPCurve *obstacle_curve2;
+
     QVector<double> rl_t,rl_y,rl_z;
     void vel_plot(double x,double y);
     double count;
 private slots:
 
    void plot_loop();
+   void on_pushButton_clicked();
+
+   void on_pushButton_2_clicked();
+
 private:
   //  void define_domain(float x_range, float y_range,double dq,QVector<double>& q);
 

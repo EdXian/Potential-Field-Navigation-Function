@@ -1,4 +1,4 @@
-# Robot Motion Planning by using Potentil Field
+# Robot Motion Planning by using Potentil Field Method
 
 # Build Environments
 
