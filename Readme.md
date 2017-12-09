@@ -17,6 +17,7 @@
 ## Result
 
 ![alt text](figure/colormap.png?raw=true "colormap")
+![alt text](figure/simulation.gif?raw=true "simulation")
 
 ## Navigation Function
 

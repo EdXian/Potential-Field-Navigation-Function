@@ -3,7 +3,7 @@
 
 
 //#define display_domain
-#define colormap
+//#define colormap
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
