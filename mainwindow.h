@@ -20,7 +20,7 @@ public:
     ~MainWindow();
     QVector<double> q;
     agent robot;
-    dot t;
+    dot target;
     QTimer *timer;
     int graph_id=0;
 
@@ -47,11 +47,18 @@ public:
     QCPMarginGroup *marginGroup;
     void vel_plot(double x,double y);
     double count;
+
+    dot obstacle_pos;
+
 private slots:
 
    void plot_loop();
    void on_pushButton_clicked();
    void on_pushButton_2_clicked();
+
+   void on_pushButton_3_clicked();
+
+   void on_checkBox_clicked();
 
 private:
   //  void define_domain(float x_range, float y_range,double dq,QVector<double>& q);

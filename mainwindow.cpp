@@ -44,7 +44,9 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->customPlot->replot();
 #endif
 
-    dot obstacle_pos;
+
+    //add obstacle
+
     obstacle_pos.x = 5;
     obstacle_pos.y = 5;
     p.obstacle.push_back(obstacle_pos);
@@ -75,7 +77,8 @@ MainWindow::MainWindow(QWidget *parent) :
     obstacle_curve->setPen(QPen(Qt::red));
     obstacle_curve->data()->set(robot_data, true);
 
-    t.x =8; t.y =4;
+    target.x =12; target.y =11;
+    //robot initial pose
     robot.pos.x = -2;  //-3.35
     robot.pos.y = -7;  //-3.35
     robot.radius = 1.0;
@@ -145,7 +148,7 @@ void MainWindow::plot_loop(){
 
     //
     p.detect_obstacle(robot , p.obstacle);
-    p.gradient_phi(robot,t);
+    p.gradient_phi(robot,target);
 
     robot.vel.x *= 40;
     robot.vel.y *=40;
@@ -160,11 +163,11 @@ void MainWindow::plot_loop(){
     }else if(robot.vel.y <-0.3){
         robot.vel.y=-0.3;
     }
-    vel_plot(robot.vel.x,robot.vel.y);
+    //vel_plot(robot.vel.x,robot.vel.y);
 
-    if (p.distance(robot.pos , t)<1){
-        robot.pos.x += -0.1*(robot.pos.x - t.x);
-        robot.pos.y += -0.1*(robot.pos.y - t.y);
+    if (p.distance(robot.pos , target)<1){
+        robot.pos.x += -0.1*(robot.pos.x - target.x);
+        robot.pos.y += -0.1*(robot.pos.y - target.y);
 
     }else{
         robot.pos.x +=robot.vel.x;
@@ -229,4 +232,66 @@ void MainWindow::on_pushButton_2_clicked()
     }
 
 
+}
+
+void MainWindow::on_pushButton_3_clicked()
+{
+    target.x = ui->target_x->text().toDouble();
+    target.y = ui->target_y->text().toDouble();
+}
+
+void MainWindow::on_checkBox_clicked()
+{
+
+    if(ui->checkBox->isChecked()){
+        std::cout << "clicked" <<std::endl;
+        colorMap = new QCPColorMap(ui->customPlot->xAxis, ui->customPlot->yAxis);
+        colorScale = new QCPColorScale(ui->customPlot);
+        marginGroup = new QCPMarginGroup(ui->customPlot);
+        p.detect_obstacle(robot , p.obstacle);
+        int nx = 200;
+        int ny = 200;
+        colorMap->data()->setSize(nx, ny);
+        colorMap->data()->setRange(QCPRange(-10, 10), QCPRange(-10, 10));
+        double x, y, z,value;
+        double dist;
+        agent r;
+        for (int xIndex=0; xIndex<nx; ++xIndex)
+        {
+            for (int yIndex=0; yIndex<ny; ++yIndex)
+            {
+                colorMap->data()->cellToCoord(xIndex, yIndex, &x, &y);
+                //z = p.phi(x,y,robot,t);
+
+                r.pos.x = x;
+                r.pos.y = y;
+
+                dist = p.gamma(r,target);
+                double b=1.0;
+                for(int i=0;i<robot.obstacle_detect.size();i++)
+                {
+                    b *= p.sigmod(r,robot.obstacle_detect[i]);
+                }
+                value = pow(dist , robot.gain)+b;
+                value = pow(value,(1/robot.gain));
+                z = dist / value ;
+                colorMap->data()->setCell(xIndex, yIndex, z);
+            }
+        }
+
+//        ui->customPlot->plotLayout()->addElement(0, 1, colorScale);
+        colorScale->setType(QCPAxis::atRight);
+        colorMap->setColorScale(colorScale);
+
+        colorMap->setGradient(QCPColorGradient::gpJet);
+        colorMap->rescaleDataRange();
+        ui->customPlot->axisRect()->setMarginGroup(QCP::msBottom|QCP::msTop, marginGroup);
+        colorScale->setMarginGroup(QCP::msBottom|QCP::msTop, marginGroup);
+        ui->customPlot->rescaleAxes();
+        robot.obstacle_detect.clear();
+
+    }else{
+         colorMap->data()->clear();
+
+    }
 }
