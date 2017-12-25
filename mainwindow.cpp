@@ -25,6 +25,8 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->realtime_plot->yAxis->setRange(-5,5);
     ui->realtime_plot->xAxis->setLabel("time");
     ui->realtime_plot->yAxis->setLabel("vel");
+
+
     //
 #ifdef display_domain
 
@@ -81,7 +83,7 @@ MainWindow::MainWindow(QWidget *parent) :
     //robot initial pose
     robot.pos.x = -2;  //-3.35
     robot.pos.y = -7;  //-3.35
-    robot.radius = 1.0;
+    robot.radius = 0.8;
     robot.gain = 0.8;
 
 #ifdef colormap
@@ -132,7 +134,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     timer = new QTimer(this);
     connect(timer, SIGNAL(timeout()),this, SLOT(plot_loop()));
-    timer->start(50);
+   // timer->start(50);
 }
 
 void MainWindow::plot_loop(){
@@ -163,15 +165,16 @@ void MainWindow::plot_loop(){
     }else if(robot.vel.y <-0.3){
         robot.vel.y=-0.3;
     }
-    //vel_plot(robot.vel.x,robot.vel.y);
 
-    if (p.distance(robot.pos , target)<1){
-        robot.pos.x += -0.1*(robot.pos.x - target.x);
-        robot.pos.y += -0.1*(robot.pos.y - target.y);
+    if (p.distance(robot.pos , target)<0.3){
+        robot.pos.x += -1*p.distance(robot.pos , target)*(robot.pos.x - target.x);
+        robot.pos.y += -1*p.distance(robot.pos , target)*(robot.pos.y - target.y);
 
     }else{
         robot.pos.x +=robot.vel.x;
         robot.pos.y +=robot.vel.y;
+//        robot.pos.x += -1*p.distance(robot.pos , target)*(robot.pos.x - target.x);
+//        robot.pos.y += -1*p.distance(robot.pos , target)*(robot.pos.y - target.y);
     }
 
     ui->customPlot->replot();
@@ -208,8 +211,12 @@ void MainWindow::on_pushButton_clicked()
 {
     if(timer->isActive()){
         timer->stop();
+
+       ui->pushButton->setText("Start");
     }else{
         timer->start();
+        timer->start(50);
+         ui->pushButton->setText("Stop");
     }
 }
 
@@ -227,7 +234,7 @@ void MainWindow::on_pushButton_2_clicked()
         //ui->realtime_plot->savePng(outputDir+fileName);
 
         ui->realtime_plot->saveJpg( outputDir+fileName,  480, 400, 1.0, -1  );
-        std::cout <<"Image is saved"<<std::endl;
+
 
     }
 
@@ -244,7 +251,6 @@ void MainWindow::on_checkBox_clicked()
 {
 
     if(ui->checkBox->isChecked()){
-        std::cout << "clicked" <<std::endl;
         colorMap = new QCPColorMap(ui->customPlot->xAxis, ui->customPlot->yAxis);
         colorScale = new QCPColorScale(ui->customPlot);
         marginGroup = new QCPMarginGroup(ui->customPlot);
@@ -256,6 +262,7 @@ void MainWindow::on_checkBox_clicked()
         double x, y, z,value;
         double dist;
         agent r;
+
         for (int xIndex=0; xIndex<nx; ++xIndex)
         {
             for (int yIndex=0; yIndex<ny; ++yIndex)
@@ -268,7 +275,7 @@ void MainWindow::on_checkBox_clicked()
 
                 dist = p.gamma(r,target);
                 double b=1.0;
-                for(int i=0;i<robot.obstacle_detect.size();i++)
+                for(unsigned int i=0;i<robot.obstacle_detect.size();i++)
                 {
                     b *= p.sigmod(r,robot.obstacle_detect[i]);
                 }
@@ -276,6 +283,7 @@ void MainWindow::on_checkBox_clicked()
                 value = pow(value,(1/robot.gain));
                 z = dist / value ;
                 colorMap->data()->setCell(xIndex, yIndex, z);
+
             }
         }
 
@@ -287,7 +295,7 @@ void MainWindow::on_checkBox_clicked()
         colorMap->rescaleDataRange();
         ui->customPlot->axisRect()->setMarginGroup(QCP::msBottom|QCP::msTop, marginGroup);
         colorScale->setMarginGroup(QCP::msBottom|QCP::msTop, marginGroup);
-        ui->customPlot->rescaleAxes();
+       // ui->customPlot->rescaleAxes();
         robot.obstacle_detect.clear();
 
     }else{

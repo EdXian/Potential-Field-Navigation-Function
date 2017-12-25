@@ -127,7 +127,7 @@ double potential_field::sigmod(agent robot ,dot obstacle){
     double dist ;
 
     dist = distance(robot.pos , obstacle);
-    value = 1 + exp(-1*(dist - (3.0/2))*(5)) ; //   3/robot.radius
+    value = 1 + exp(-1*(dist - (4.0/2))*(5)) ; //   3/robot.radius
     value = 1/value;
 
     return value;
